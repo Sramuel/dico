@@ -3,7 +3,7 @@
 import socket
 import sys
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-if len(sys.argv) < 4:
+if len(sys.argv) < 5:
     print("Usage: dico_client.py <server> <port> <command> <arg>")
     s.close()
     sys.exit(1)

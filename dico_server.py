@@ -37,14 +37,8 @@ while True: #on reçoit les données envoyé par le client, si elles sont vide o
                     key: str = cmdarg[1]
                     if key in dico:
                         s.sendall(f"{dico[key]}".encode("utf-8"))
-                        l.remove(s)
-                        s.close()
                     else:
                         s.sendall("Key not found".encode("utf-8"))
-                        l.remove(s)
-                        s.close()
                 else:
                     s.sendall(f"Unknown command: {command}".encode("utf-8"))
-                    l.remove(s)
-                    s.close()
 ss.close()
