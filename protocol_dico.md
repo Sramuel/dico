@@ -49,7 +49,7 @@ Exemples de requêtes en fonction des différentes commandes disponibles
 
 `pref` <préfixe> : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.
 
-`set` <clé> <valeur> : Définit la valeur associée à la clé ou crée la clé et rempli avec la valeur
+`set` <clé> &lt;valeur&gt; : Définit la valeur associée à la clé ou crée la clé et rempli avec la valeur
 
 `del` <clé> : Supprime la clé du dictionnaire. 
 
