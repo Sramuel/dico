@@ -37,30 +37,36 @@ Exemples de requêtes en fonction des différentes commandes disponibles
 
 ### Liste des différentes commandes :
 
-**Commandes pour le Client :**
+**Commandes pour le Client Non Administrateur :**
 
-get <clé> : Récupère la valeur associée à la clé. 
+`get` <clé> : Récupère la valeur associée à la clé. 
 
-pref <préfixe> : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.
-Commandes pour le Client Administrateur :
+`pref` <préfixe> : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.
 
-get <clé> : Récupère la valeur associée à la clé. 
+**Commandes pour le Client Administrateur :**
 
-pref <préfixe> : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.
+`get` <clé> : Récupère la valeur associée à la clé. 
 
-set <clé> <valeur> : Définit la valeur associée à la clé ou crée la clé et rempli avec la valeur
+`pref` <préfixe> : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.
 
-del <clé> : Supprime la clé du dictionnaire. 
+`set` <clé> <valeur> : Définit la valeur associée à la clé ou crée la clé et rempli avec la valeur
+
+`del` <clé> : Supprime la clé du dictionnaire. 
 
 ## 4. Format de la réponse :
 
 Exemples de réponses en fonction des différentes commandes disponibles
+*{utilisateur} est soit client soit administrateur.*
+
+**Serveur Maître**
+Si un serveur maître est défini dans la requête et si le serveur esclave ne trouve pas de réponse alors le serveur maître répond à la requête de la même manière que ci dessous. Si il ne trouve quand même pas il renverra la même erreur que ci dessous.
+Le serveur Maître répond de la même manière que le serveur Esclave faux ou non.
 
 **Retours Sans Erreur :**
 
 `get` : renvoie la valeur associé à la clef
 
-Exemple : `./dico_client.py 10.0.104.4 7777 get avril` -> 30
+*Exemple* : `./dico_{utilisateur}.py 10.0.104.4 7777 mois_duree.json get avril` -> 30
 
 `set` : renvoie rien, modifie seulement la valeur de la clé ou ajoute la clé et la valeur associée
 
@@ -68,100 +74,77 @@ Exemple : `./dico_client.py 10.0.104.4 7777 get avril` -> 30
 
 `pref` : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.
 
-Exemple : `./dico_client.py 10.0.104.4 7777 pref ju` -> "juin": "30" "juillet": "31"
+*Exemple* : `./dico_{utilisateur}.py 10.0.104.4 7777 mois_duree.json pref ju` -> "juin": "30" "juillet": "31"
 
 **Erreur dans les commandes au niveau des arguments:**
 
-{utilisateur} est soit client soit administrateur.
+`get` Si la clé n'existe pas : Key not found
 
-
-`get` :
-Si la clé n'existe pas :
-
-Key not found
-
-Exemple : `./dico_{utilisateur}.py 10.0.104.4 7777 get tutu`
+*Exemple* : `./dico_{utilisateur}.py 10.0.104.4 7777 mois_duree.json get tutu`
 où “tutu”n’est pas une clé existante
-
 
 `set` : Pas d’erreur possible
 
+`del` Si la clé n'existe pas : Key not found
 
-`del` : 
-Si la clé n'existe pas :
+*Exemple* : `./dico_{utilisateur}.py 10.0.104.4 7777 mois_duree.json del tutu`
+où “tutu” n’est pas une clé existante
 
-Key not found
+`pref` Si le préfixe n’est associé à aucune clé : Prefix not found
 
-Exemple : `./dico_{utilisateur}.py 10.0.104.4 7777 del tutu`
-où “tutu”n’est pas une clé existante
+*Exemple* : `./dico_{utilisateur}.py 10.0.104.4 7777 mois_duree.json pref tutu`
+ou "tutu" n’est pas un préfixe existant
 
-
-`pref` :
-Si le préfixe n’est associé à aucune clé :
-
-Prefix not found
-
-Exemple : ./dico_{utilisateur}.py 10.0.104.4 7777 pref tutu
-tutu n’est pas un préfixe existant
-
-Exemple : ./dico_{utilisateur}.py 10.0.104.4 7777 pref féb
+*Exemple* : `./dico_{utilisateur}.py 10.0.104.4 7777 mois_duree.json pref féb`
 féb n’est pas un préfixe existant, c’est fév. qui est un des préfixes existant pour février.
 
-Erreurs sur le nom des commandes et du nombre d’arguments :
+**Erreurs sur le nom des commandes et du nombre d’arguments :**
 
-Pour un client non administrateur :
+**Pour un client non administrateur :**
 
- Si la commande à moins de 1 argument ou n’existe pas: 
+Si la commande à moins de 1 argument ou n’existe pas : 
 
 Usage: dico_client.py <server> <port> <command> <arg>
 
-exemple 1: ./dico_client.py 10.0.104.4 7777 get
+*Exemple 1* : `./dico_client.py 10.0.104.4 7777 mois_duree.json get`
 où il manque un argument
 
-exemple 2 : ./dico_client.py 10.0.104.4 7777 toto
-où toto n’est pas une commande existante
+*Exemple 2* : `./dico_client.py 10.0.104.4 7777 mois_duree.json toto`
+où "toto" n’est pas une commande existante
 
+Si la commande est `set` ou `del` : VOUS DEVEZ ÊTRE ADMIN
 
-Si la commande est “set” ou “del” : 
-
-VOUS DEVEZ ÊTRE ADMIN
-
-Si la commande n'existe pas et a plus d’un argument :
-
-Usage: dico_client.py <server> <port> <command> <arg>
+Si la commande n'existe pas et a plus d’un argument : 
+Usage: dico_client.py <server> <port> <dico_name.json> <command> <arg>
 Commands:
 get <key> : Récupère la valeur associée à la clé. Affiche 'Key not found' si la clé n'existe pas.
 pref <prefix> : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.
 
-exemple : ./dico_client.py 10.0.104.4 7777 toto tutu 
-où toto n’est pas une commande existante
+*Exemple* : `./dico_client.py 10.0.104.4 7777 mois_duree.json toto tutu` 
+où "toto" n’est pas une commande existante
 
+**Pour un client administrateur :**
 
-Pour un client administrateur :
+Si la commande à moins de 1 argument ou n’existe pas : Usage: dico_admin.py <server> <port> <command> <arg> 
 
- Si la commande à moins de 1 argument ou n’existe pas: 
-
-Usage: dico_admin.py <server> <port> <command> <arg> 
-
-exemple 1: ./dico_client.py 10.0.104.4 7777 get
+*Exemple 1* : `./dico_admin.py 10.0.104.4 7777 mois_duree.json get`
 où il manque un argument
 
-exemple 2 : ./dico_client.py 10.0.104.4 7777 toto
-où toto n’est pas une commande existante
+*Exemple 2* : `./dico_admin.py 10.0.104.4 7777 mois_duree.json toto`
+où "toto" n’est pas une commande existante
 
-Si la commande est set et il manque le deuxième argument : 
+Si la commande est set et il manque le deuxième argument : Usage: dico_admin.py <server> <port> <command> <arg> <arg2>
 
-Usage: dico_admin.py <server> <port> <command> <arg> <arg2>
-
-exemple 1: ./dico_client.py 10.0.104.4 7777 set avril
+*Exemple* : `./dico_admin.py 10.0.104.4 7777 mois_duree.json set avril`
 où il manque un argument
 
-Si la commande n'existe pas et a plus d’un argument :
-
-Usage: dico_client.py <server> <port> <command> <arg>
+Si la commande n'existe pas et a plus d’un argument : 
+Usage: dico_admin.py <server> <port> <dico_name.json> <command> <arg>
 Commands:
 get <key> : Récupère la valeur associée à la clé. Affiche 'Key not found' si la clé n'existe pas.
 pref <prefix> : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.
+set <key> <value> : Définit la valeur associée à la clé ou crée la clé et rempli avec la valeur
+del <key> : Supprime la clé du dictionnaire. 
 
-exemple : ./dico_client.py 10.0.104.4 7777 toto tutu 
-où toto n’est pas une commande existante
+*Exemple* : `./dico_admin.py 10.0.104.4 7777 mois_duree.json toto tutu` 
+où "toto" n’est pas une commande existante
