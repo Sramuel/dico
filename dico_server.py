@@ -1,36 +1,16 @@
 #!/usr/bin/python3
 
 import socket
-from typing import Dict
-import sys
-import os
-import json
 import select
+from dico_local import *
+from dico_protocol import *
 
-def load_dico(dico_file: str) -> Dict[str, str]:
-    """Load JSON dictionary from file, return empty dict on missing/invalid file."""
-    if not os.path.exists(dico_file):
-        return {}
-    with open(dico_file, 'r', encoding='utf-8') as f:
-        try:
-            data = json.load(f)
-            # Ensure the loaded object is a dict; otherwise return empty dict
-            if isinstance(data, dict):
-                return data
-            return {}
-        except Exception:
-            return {}
-
-
-def save_dico(dico_file: str, dico: Dict[str, str]) -> None:
-    with open(dico_file, 'w', encoding='utf-8') as f:
-        json.dump(dico, f, ensure_ascii=False, indent=2)
-
-ss = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+ss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 l=[] #liste sockets clients
 try: #crée le serveur et ouvre les connexion
+    port = int(sys.argv[1])
     ss.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) #évite le Adress already in use
-    ss.bind(("",7777))
+    ss.bind(("",port))
     ss.listen(1)
 
 except Exception as e: #si erreur pour créer le serveur
@@ -52,7 +32,7 @@ while True: #on reçoit les données envoyé par le client, si elles sont vide o
                 buffer = data.decode("utf-8").strip()
                 cmdarg=buffer.split(" ",1)
                 command = cmdarg[0]
-                dico: Dict[str, str] = load_dico("data/mois_duree.json")
+                dico: Dict[str, str] = load_dico(f"data/{sys.argv[2]}")
                 if command == 'get':
                     key: str = cmdarg[1]
                     if key in dico:
