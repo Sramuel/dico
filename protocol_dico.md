@@ -121,8 +121,8 @@ VOUS DEVEZ ÊTRE ADMIN
 Si la commande n'existe pas et a plus d’un argument :  
 Usage: dico_client.py &lt;server&gt; &lt;port&gt; &lt;dico_name.json&gt; &lt;command&gt; &lt;arg&gt;  
 Commands:  
-`get` &lt;key&gt; : Récupère la valeur associée à la clé. Affiche 'Key not found' si la clé n'existe pas.  
-`pref` &lt;prefix&gt; : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.  
+get &lt;key&gt; : Récupère la valeur associée à la clé. Affiche 'Key not found' si la clé n'existe pas.  
+pref &lt;prefix&gt; : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.  
 
 *Exemple* : `./dico_client.py 10.0.104.4 7777 mois_duree.json toto tutu` 
 où "toto" n’est pas une commande existante
@@ -147,10 +147,10 @@ où il manque un argument
 Si la commande n'existe pas et a plus d’un argument :  
 Usage: dico_admin.py &lt;server&gt; &lt;port&gt; &lt;dico_name.json&gt; &lt;command&gt; &lt;arg&gt;  
 Commands:  
-`get` &lt;key&gt; : Récupère la valeur associée à la clé. Affiche 'Key not found' si la clé n'existe pas.  
-`pref` &lt;prefix&gt; : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.  
-`set` &lt;key&gt; &lt;value&gt; : Définit la valeur associée à la clé ou crée la clé et rempli avec la valeur  
-`del` &lt;key&gt; : Supprime la clé du dictionnaire.  
+get &lt;key&gt; : Récupère la valeur associée à la clé. Affiche 'Key not found' si la clé n'existe pas.  
+pref &lt;prefix&gt; : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.  
+set &lt;key&gt; &lt;value&gt; : Définit la valeur associée à la clé ou crée la clé et rempli avec la valeur  
+del &lt;key&gt; : Supprime la clé du dictionnaire.  
   
 *Exemple* : `./dico_admin.py 10.0.104.4 7777 mois_duree.json toto tutu` 
 où "toto" n’est pas une commande existante
