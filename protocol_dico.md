@@ -15,25 +15,25 @@ Exemples de requêtes en fonction des différentes commandes disponibles
 
 **Requête pour le Client :**
 
-`./dico_client.py &lt;@serveur&gt; &lt;port du serveur&gt; &lt;dico_name.json&gt; &lt;commande&gt;`
+`./dico_client.py <@serveur> <port du serveur> <dico_name.json> <commande>`
 
 **Requête pour le Client Administrateur :**
 
 - Particularité pour l’admin, le client administrateur devra s'authentifier auprès du serveur :
 
-`./dico_admin.py &lt;@serveur&gt; &lt;port du serveur&gt;`
+`./dico_admin.py <@serveur> <port du serveur>`
 
 - De plus, il pourra rester connecté pour effectuer plusieurs opérations du type :
 
-`&lt;dico_name.json&gt; &lt;commande&gt;`  
-`&lt;dico_name.json&gt; &lt;commande&gt;`  
+`<dico_name.json> <commande>`  
+`<dico_name.json> <commande>`  
 `…`
 - Pour fermer la connexion avec l’admin, il faut alors un moyen de reconnaître la demande du client admin avec une commande spéciale :  
 `exit`
 
 **Requête pour le Serveur :**
 
-`./dico_server.py &lt;port d'écoute&gt; [master &lt;@serveur maître&gt; &lt;port du serveur maître&gt;]`
+`./dico_server.py <port d'écoute> [master <@serveur maître> <port du serveur maître>]`
 
 ### Liste des différentes commandes :
 
