@@ -25,8 +25,8 @@ Exemples de requêtes en fonction des différentes commandes disponibles
 
 - De plus, il pourra rester connecté pour effectuer plusieurs opérations du type :
 
-`<dico_name.json> <commande>`
-`<dico_name.json> <commande>` 
+`<dico_name.json> <commande>\n`
+`<dico_name.json> <commande>\n` 
 `…`
 - Pour fermer la connexion avec l’admin, il faut alors un moyen de reconnaître la demande du client admin avec une commande spéciale :
 `exit`
