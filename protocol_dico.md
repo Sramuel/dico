@@ -9,15 +9,15 @@ Fournir une application client/serveur en Python avec un client dico_client.py e
 Terminaison de Ligne : Chaque ligne de commande est strictement terminée par **CRLF** (\r\n).
 Séparateur : L'**espace** est utilisé comme séparateur entre les éléments de la ligne de commande.
 
-## 3. Format de la requête
+## 3. Format de la commande de connexion
 
 Exemples de requêtes en fonction des différentes commandes disponibles
 
-**Requête pour le Client :**
+**Commande de connexion pour le Client :**
 
 `./dico_client.py <@serveur> <port du serveur> <dico_name.json> <commande>`
 
-**Requête pour le Client Administrateur :**
+**Commande de connexion pour le Client Administrateur :**
 
 - Particularité pour l’admin, le client administrateur devra s'authentifier auprès du serveur :
 
@@ -31,7 +31,7 @@ Exemples de requêtes en fonction des différentes commandes disponibles
 - Pour fermer la connexion avec l’admin, il faut alors un moyen de reconnaître la demande du client admin avec une commande spéciale :  
 `exit`
 
-**Requête pour le Serveur :**
+**Commande de démarrage du Serveur :**
 
 `./dico_server.py <port d'écoute> [master <@serveur maître> <port du serveur maître>]`
 
@@ -154,3 +154,8 @@ del &lt;key&gt; : Supprime la clé du dictionnaire.
   
 *Exemple* : `./dico_admin.py 10.0.104.4 7777 mois_duree.json toto tutu` 
 où "toto" n’est pas une commande existante
+
+## 5. Protocoles des fonctionnalités
+
+- le client a besoin du host + port + dico + cmd + arg, -> se connecte avec l'adresse de la machine host, le port reçu du serveur
+- le serveur a besoin du port -> demarre le serv

@@ -30,15 +30,40 @@ while True: #on reçoit les données envoyé par le client, si elles sont vide o
                 s.close()
             else:
                 buffer = data.decode("utf-8").strip()
-                cmdarg=buffer.split(" ",1)
-                command = cmdarg[0]
-                dico: Dict[str, str] = load_dico(f"data/{sys.argv[2]}")
+                cmdarg=buffer.split(" ",2) #on divise en 3 avec split(" ",2), pour séparer le dico, la commande et les arguments pour que les arguments puissent prendre des espaces
+                dicoarg = cmdarg[0] #réception du nom du fichier dico envoyé par le client
+                command = cmdarg[1] #réception de la commande envoyé par le client
+                dico: Dict[str, str] = load_dico(f"data/{dicoarg}")
                 if command == 'get':
-                    key: str = cmdarg[1]
+                    key: str = cmdarg[2] #réception de la clé du dictionnaire envoyé dans les arguments par le client
                     if key in dico:
                         s.sendall(f"{dico[key]}".encode("utf-8"))
                     else:
                         s.sendall("Key not found".encode("utf-8"))
+                
+                elif command == 'pref':
+                    char="" #chaîne de caractère qui contiendra le dico des préfixes (dico_pref) pour l'envoyer au client
+                    dico_pref = {} #création du dico des préfixes valides
+                    cpt=0 #nombre de lettres dans le préfixe envoyé par le client
+                    pref_key: str = cmdarg[2] #on reçoit le prefixe de la clé envoyé par le clint
+                    len_p = len(pref_key)
+                    for key in dico: #on parcourt tout le dictionnaire
+                        i = 0
+                        while i<len(key) and i<len_p : #on vérifie si le préfixe est valide en taille par rapport à la clé
+                            if pref_key[i] == key[i]: #si la lettre correspond, on regarde la suivante
+                                cpt+=1
+                            i+=1 
+                        if cpt == len_p: #si toutes les lettres correspondent à un préfixe valide, alors on le met dans le dico des préfixes
+                            dico_pref[key]=dico[key]
+                        cpt=0
+                         
+                    for key in dico_pref: #on parcourt tous les préfixes valides du dico_pref pour les mettre dans une seule chaîne de caractères pour l'envoyer au client
+                        char+=(f"\"{key}\": \"{dico_pref[key]}\" ")
+                    if char != "": #si le dico des préfixes n'est pas vide alors on envoie la liste des clés:valeurs associées au préfixe
+                        s.sendall(char.encode("utf-8"))
+                    else:
+                        s.sendall("Prefix not found".encode("utf-8"))
+                
                 else:
                     s.sendall(f"Unknown command: {command}".encode("utf-8"))
 ss.close()
