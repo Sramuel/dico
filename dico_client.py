@@ -2,20 +2,23 @@
 
 import socket
 import sys
+from dico_protocol import format_request
+
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 if len(sys.argv) < 6:
     print("Usage: dico_client.py <server> <port> <dico> <command> <arg>")
     s.close()
     sys.exit(1)
 
-sarg="" #pour pouvoir accueillir l'argument "Mike Tyson" qui contient un espace, sys.argv n'est plus efficace pour la gestion du nombre d'arguments donc on crée une chaîne de caractères pour pouvoir la diviser
-cptarg =0 #initialisation du compteur d'arguments
+sarg="" #ici je reconstruis les arguments parce que si on tape "Mike Tyson", sys.argv le coupe en deux. Donc je recolle tout avec des espaces
+cptarg =0
 while(cptarg < len(sys.argv)-1):
-    sarg+=(sys.argv[cptarg]+" ") #on concatène tout les arguments donnés par le client
+    sarg+=(sys.argv[cptarg]+" ")
     cptarg+=1
 sarg+=(sys.argv[cptarg]) #on évite ici d'ajouter un espace après pour contourner de possibles erreurs
 
-buffer = sarg.split(" ",5)
+#maintenant je recoupe proprement en limitant à 5 morceaux pour que le dernier argument reste entier
+buffer = sarg.split(" ",5) #[dico_client.py, host, port, dico, command, argument_avec_espaces]
 host = buffer[1]
 port = int(buffer[2])
 dico = buffer[3]
@@ -34,7 +37,7 @@ else :
     print("pref <prefix> : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.")
     s.close()
     sys.exit(1)
-data=(dico+" "+command+" "+arg).encode()
+data = format_request(dico, command, arg)
 s.sendall(data)
 print((s.recv(1500)).decode("utf-8"))
 s.close()

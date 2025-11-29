@@ -1,161 +1,89 @@
-# Projet Dictionnaire avec Python socket
+# Protocole - Projet Dictionnaire
 
-## 1. But
+## 1. Introduction et But
 
-Fournir une application client/serveur en Python avec un client dico_client.py et un serveur dico_server.py qui permettent de manipuler à distance un dictionnaire en utilisant des sockets TCP. Les échanges se font sur une connexion TCP, en texte brut (UTF-8), suivant une structure ligne par ligne. Chaque message correspond à une requête ou une réponse terminée par le caractère “\n”.
+Le but est de faire communiquer un client et un serveur pour consulter un dictionnaire à distance.
+Les échanges se font via le réseau en utilisant des **sockets TCP**.
+Toutes les données échangées sont du **texte brut**, encodé en **UTF-8**.
 
-## 2. Structure des Messages
+Il y a deux types d'échanges principaux :
+1. **Client -> Serveur** : Le client pose une question.
+2. **Serveur -> Serveur Maître** : Si le serveur ne sait pas, il transfère la question à son chef (le maître).
 
-Terminaison de Ligne : Chaque ligne de commande est strictement terminée par **CRLF** (\r\n).
-Séparateur : L'**espace** est utilisé comme séparateur entre les éléments de la ligne de commande.
 
-## 3. Format de la commande de connexion
+## 2. Structure des Messages (Le Protocole)
 
-Exemples de requêtes en fonction des différentes commandes disponibles
+C'est la règle pour que le client et le serveur se comprennent.
+On n'utilise pas de JSON complexe, mais une structure simple ligne par ligne.
 
-**Commande de connexion pour le Client :**
+### Format de la requête (Ce qu'envoie le client)
+Le client envoie une chaîne de caractères composée de 3 parties, séparées obligatoirement par un **espace**.
 
-`./dico_client.py <@serveur> <port du serveur> <dico_name.json> <commande>`
+**Syntaxe :**
+`NOM_DU_DICO` `COMMANDE` `ARGUMENT`
 
-**Commande de connexion pour le Client Administrateur :**
+* **Séparateur** : Espace (` `).
+* **Encodage** : UTF-8.
 
-- Particularité pour l’admin, le client administrateur devra s'authentifier auprès du serveur :
+**Exemple concret (ce qui circule dans le réseau) :**
+`mois_duree.json get avril`
 
-`./dico_admin.py <@serveur> <port du serveur>`
+### Format de la réponse (Ce que répond le serveur)
+Le serveur renvoie directement le résultat sous forme de texte brut.
 
-- De plus, il pourra rester connecté pour effectuer plusieurs opérations du type :
 
-`<dico_name.json> <commande>`  
-`<dico_name.json> <commande>`  
-`…`
-- Pour fermer la connexion avec l’admin, il faut alors un moyen de reconnaître la demande du client admin avec une commande spéciale :  
-`exit`
+## 3. Détail des Commandes
 
-**Commande de démarrage du Serveur :**
+Voici les interactions possibles définies dans le protocole.
 
-`./dico_server.py <port d'écoute> [master <@serveur maître> <port du serveur maître>]`
+### Commande GET
+* **But** : Demander la valeur exacte d'une clé.
+* **Format envoyé** : `<dico> get <clé>`
+* **Réponse succès** : La valeur associée (ex: `30`).
+* **Réponse erreur** : `Key not found`
 
-### Liste des différentes commandes :
+**Exemple d'échange :**
+> **Envoi** : `mois_duree.json get avril`
+> **Réception** : `30`
 
-**Commandes pour le Client Non Administrateur :**
+### Commande PREF
+* **But** : Demander toutes les clés qui commencent par un préfixe.
+* **Format envoyé** : `<dico> pref <préfixe>`
+* **Réponse succès** : Une liste de couples formatée : `"clé": "valeur" "clé2": "valeur2"`
+* **Réponse erreur** : `Prefix not found`
 
-`get` &lt;clé&gt; : Récupère la valeur associée à la clé. 
+**Exemple d'échange :**
+> **Envoi** : `mois_duree.json pref ju`
+> **Réception** : `"juin": "30" "juillet": "31"`
 
-`pref` &lt;préfixe&gt; : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.
+### Commandes Administrateur (SET / DEL)
+*Ces commandes sont réservées aux administrateurs.*
+* **SET** : `<dico> set <clé> <valeur>`
+* **DEL** : `<dico> del <clé>`
 
-**Commandes pour le Client Administrateur :**
 
-`get` &lt;clé&gt; : Récupère la valeur associée à la clé. 
+## 4. Fonctionnement Serveur Maître / Esclave
 
-`pref` &lt;préfixe&gt; : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.
+Le protocole gère une hiérarchie pour trouver l'information coûte que coûte.
 
-`set` &lt;clé&gt; &lt;valeur&gt; : Définit la valeur associée à la clé ou crée la clé et rempli avec la valeur
+1.  Le **Serveur Esclave** reçoit une requête (ex: `get février`).
+2.  Il cherche dans son fichier local.
+3.  **Si il ne trouve pas** (ou si le fichier n'existe pas) ET qu'il a un maître configuré :
+    * Il ouvre une connexion vers le Serveur Maître.
+    * Il lui envoie le message **tel quel** (sans le modifier).
+    * Il attend la réponse du Maître.
+    * Il renvoie cette réponse au client.
 
-`del` &lt;clé&gt; : Supprime la clé du dictionnaire. 
+C'est transparent pour le client : il ne sait pas que c'est le maître qui a répondu.
 
-## 4. Format de la réponse :
 
-Exemples de réponses en fonction des différentes commandes disponibles  
-*{utilisateur} est soit client soit administrateur.*
+## 5. Gestion des Erreurs
 
-**Serveur Maître**
-Si un serveur maître est défini dans la requête et si le serveur esclave ne trouve pas de réponse alors le serveur maître répond à la requête de la même manière que ci dessous. Si il ne trouve quand même pas il renverra la même erreur que ci dessous.
-Le serveur Maître répond de la même manière que le serveur Esclave faux ou non.
+Le serveur renvoie des messages précis en texte clair pour dire ce qui ne va pas.
 
-**Retours Sans Erreur :**
-
-`get` : renvoie la valeur associé à la clef
-
-*Exemple* : `./dico_{utilisateur}.py 10.0.104.4 7777 mois_duree.json get avril` -> 30
-
-`set` : renvoie rien, modifie seulement la valeur de la clé ou ajoute la clé et la valeur associée
-
-`del` : renvoie rien, supprime seulement la clé et la valeur associée
-
-`pref` : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.
-
-*Exemple* : `./dico_{utilisateur}.py 10.0.104.4 7777 mois_duree.json pref ju` -> "juin": "30" "juillet": "31"
-
-**Erreur dans les commandes au niveau des arguments:**
-
-`get` Si la clé n'existe pas :  
-Key not found  
-
-*Exemple* : `./dico_{utilisateur}.py 10.0.104.4 7777 mois_duree.json get tutu`
-où “tutu” n’est pas une clé existante
-
-`set` :  
-Pas d’erreur possible
-
-`del` Si la clé n'existe pas :  
-Key not found  
-
-*Exemple* : `./dico_{utilisateur}.py 10.0.104.4 7777 mois_duree.json del tutu`
-où “tutu” n’est pas une clé existante
-
-`pref` Si le préfixe n’est associé à aucune clé :  
-Prefix not found  
-
-*Exemple 1* : `./dico_{utilisateur}.py 10.0.104.4 7777 mois_duree.json pref tutu`
-ou "tutu" n’est pas un préfixe existant
-
-*Exemple 2* : `./dico_{utilisateur}.py 10.0.104.4 7777 mois_duree.json pref féb`
-féb n’est pas un préfixe existant, c’est fév. qui est un des préfixes existant pour février.
-
-**Erreurs sur le nom des commandes et du nombre d’arguments :**
-
-**Pour un client non administrateur :**
-
-Si la commande à moins de 1 argument ou n’existe pas :  
-Usage: dico_client.py &lt;server&gt; &lt;port&gt; &lt;command&gt; &lt;arg&gt;  
-
-*Exemple 1* : `./dico_client.py 10.0.104.4 7777 mois_duree.json get`
-où il manque un argument
-
-*Exemple 2* : `./dico_client.py 10.0.104.4 7777 mois_duree.json toto`
-où "toto" n’est pas une commande existante
-
-Si la commande est `set` ou `del` :  
-VOUS DEVEZ ÊTRE ADMIN  
-
-Si la commande n'existe pas et a plus d’un argument :  
-Usage: dico_client.py &lt;server&gt; &lt;port&gt; &lt;dico_name.json&gt; &lt;command&gt; &lt;arg&gt;  
-Commands:  
-get &lt;key&gt; : Récupère la valeur associée à la clé. Affiche 'Key not found' si la clé n'existe pas.  
-pref &lt;prefix&gt; : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.  
-
-*Exemple* : `./dico_client.py 10.0.104.4 7777 mois_duree.json toto tutu` 
-où "toto" n’est pas une commande existante
-
-**Pour un client administrateur :**
-
-Si la commande à moins de 1 argument ou n’existe pas :  
-Usage: dico_admin.py &lt;server&gt; &lt;port&gt; &lt;command&gt; &lt;arg&gt;  
-
-*Exemple 1* : `./dico_admin.py 10.0.104.4 7777 mois_duree.json get`
-où il manque un argument
-
-*Exemple 2* : `./dico_admin.py 10.0.104.4 7777 mois_duree.json toto`
-où "toto" n’est pas une commande existante
-
-Si la commande est set et il manque le deuxième argument :  
-Usage: dico_admin.py &lt;server&gt; &lt;port&gt; &lt;command&gt; &lt;arg&gt; &lt;arg2&gt;  
-
-*Exemple* : `./dico_admin.py 10.0.104.4 7777 mois_duree.json set avril`
-où il manque un argument
-
-Si la commande n'existe pas et a plus d’un argument :  
-Usage: dico_admin.py &lt;server&gt; &lt;port&gt; &lt;dico_name.json&gt; &lt;command&gt; &lt;arg&gt;  
-Commands:  
-get &lt;key&gt; : Récupère la valeur associée à la clé. Affiche 'Key not found' si la clé n'existe pas.  
-pref &lt;prefix&gt; : Affiche toutes les couples clé-valeur dont la clé commence par le préfixe donné.  
-set &lt;key&gt; &lt;value&gt; : Définit la valeur associée à la clé ou crée la clé et rempli avec la valeur  
-del &lt;key&gt; : Supprime la clé du dictionnaire.  
-  
-*Exemple* : `./dico_admin.py 10.0.104.4 7777 mois_duree.json toto tutu` 
-où "toto" n’est pas une commande existante
-
-## 5. Protocoles des fonctionnalités
-
-- le client a besoin du host + port + dico + cmd + arg, -> se connecte avec l'adresse de la machine host, le port reçu du serveur
-- le serveur a besoin du port -> demarre le serv
+| Message renvoyé | Signification |
+| :--- | :--- |
+| `Key not found` | La clé n'existe pas (ni chez l'esclave, ni chez le maître). |
+| `Prefix not found` | Aucun mot ne commence par ce préfixe. |
+| `Error: Invalid request format` | Le message reçu est malformé (il manque des espaces ou des arguments). |
+| `Unknown command: <cmd>` | La commande demandée (ex: "toto") n'existe pas. |
