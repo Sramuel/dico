@@ -85,5 +85,5 @@ Le serveur renvoie des messages précis en texte clair pour dire ce qui ne va pa
 | :--- | :--- |
 | `Key not found` | La clé n'existe pas (ni chez l'esclave, ni chez le maître). |
 | `Prefix not found` | Aucun mot ne commence par ce préfixe. |
-| `Error: Invalid request format` | Le message reçu est malformé (il manque des espaces ou des arguments). |
+| `Malformed request` | Le message reçu est malformé (il manque des espaces ou des arguments). |
 | `Unknown command: <cmd>` | La commande demandée (ex: "toto") n'existe pas. |
