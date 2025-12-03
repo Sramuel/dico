@@ -34,6 +34,30 @@ Le serveur renvoie directement le résultat sous forme de texte brut.
 
 ## 3. Détail des Commandes
 
+Exemples de requêtes en fonction des différentes commandes disponibles
+
+**Requête pour le Client :**
+
+`./dico_client.py <@serveur> <port du serveur> <dico_name.json> <commande>`
+
+**Requête pour le Client Administrateur :**
+
+- Particularité pour l’admin, le client administrateur devra s'authentifier auprès du serveur :
+
+`./dico_admin.py <@serveur> <port du serveur>`
+
+- De plus, il pourra rester connecté pour effectuer plusieurs opérations du type :
+
+`<dico_name.json> <commande>`  
+`<dico_name.json> <commande>`  
+`…`
+- Pour fermer la connexion avec l’admin, il faut alors un moyen de reconnaître la demande du client admin avec une commande spéciale :  
+`exit`
+
+**Requête pour le Serveur :**
+
+`./dico_server.py <port d'écoute> [master <@serveur maître> <port du serveur maître>]`
+
 Voici les interactions possibles définies dans le protocole.
 
 ### Commande GET
