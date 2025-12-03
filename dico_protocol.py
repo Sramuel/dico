@@ -4,10 +4,6 @@ def format_request(dico, command, arg): #prépare le message pour l'envoi (clien
     msg = f"{dico} {command} {arg}"
     return msg.encode("utf-8")
 
-def format_request_set(dico, command, arg, value): #prépare le message pour l'envoi (client -> serveur)
-    msg = f"{dico} {command} {arg} {value}"
-    return msg.encode("utf-8")
-
 def parse_request(data): #découpe le message reçu (serveur <- client)
     try:
         text = data.decode("utf-8").strip()

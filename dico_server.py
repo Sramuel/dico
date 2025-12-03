@@ -11,9 +11,10 @@ admin_user={"admin":"admin"} #tableau des user admin (avec username:password)
 
 ss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 l=[] #liste sockets clients
+admins=[] #liste des sockets clients admins connectés
+
 try: #crée le serveur et ouvre les connexion
     master = False
-    admin=False
     port = int(sys.argv[1])
     if len(sys.argv)>4:
         if (sys.argv[2]== "master"):
@@ -36,20 +37,25 @@ while True: #on reçoit les données envoyé par le client
         else : #le client de cette socket nous a envoyé des donnée
             data = s.recv(1500)
             if not data:
-                l.remove(s) #on retire la socket client qui nous a envoyé des données une fois la connexion fermé
+                if s in l: 
+                    l.remove(s) #on retire la socket client qui nous a envoyé des données une fois la connexion fermé
+                if s in admins: 
+                    admins.remove(s) #on le retire des admins s'il part
                 s.close()
             else:
                 cmdarg = parse_request(data)
+                admin = (s in admins)
                 if cmdarg != None: #sécurité si message vide ou malformé
                     dicoarg = cmdarg[0] #réception du nom du fichier dico envoyé par le client
-                    if dicoarg == "dico_admin.py":
+                    if dicoarg == "dico_admin.py": #si dicoarg est dico_admin.py, c'est une tentative de login admin
                         login = cmdarg[1]
                         password = cmdarg[2]
-                        if login in admin_user and password in admin_user[login]:
-                            admin = True
+                        if login in admin_user and password in admin_user[login]: #vérification des identifiants
+                            admins.append(s) #on ajoute la socket à la liste des admins connectés
                             s.sendall("Nice ! You are logged in !!!".encode("utf-8"))
                         else :
                             s.sendall("Wrong login or password".encode("utf-8"))
+                        continue #on a passer l'étape de l'authentification, on passe à la prochaine itération
 
                     else:
                         command = cmdarg[1] #réception de la commande envoyé par le client
@@ -100,27 +106,25 @@ while True: #on reçoit les données envoyé par le client
 
 
                     elif command == 'set' and admin:
-                        if len(sys.argv) != 5:
-                            print("Usage: dico_local.py <dico_file> set <key> <value>")
-                            sys.exit(1)
-                        key = sys.argv[3]
-                        value = sys.argv[4]
-                        dico[key] = value
-                        save_dico(f"data/{dicoarg}", dico)
-                        print(f"Set {key} = {value}")
+                        try:
+                            args_set = cmdarg[2].split("|", 1) # On sépare la clé de la valeur
+                            key = args_set[0]
+                            value = args_set[1]
+                            dico[key] = value
+                            save_dico(f"data/{dicoarg}", dico) #on sauvegarde le dico modifié
+                            s.sendall(f"Set {key} = {value}".encode("utf-8"))
+                        except:
+                            s.sendall("Error in set arguments".encode("utf-8"))
                         
 
                     elif command == 'del' and admin:
-                        if len(sys.argv) != 4:
-                            print("Usage: dico_local.py <dico_file> del <key>")
-                            sys.exit(1)
-                        key = sys.argv[3]
+                        key = cmdarg[2]
                         if key in dico:
-                            del dico[key]
+                            del dico[key] #on supprime la clé du dico
                             save_dico(f"data/{dicoarg}", dico)
-                            print(f"Deleted {key}")
+                            s.sendall(f"Deleted {key}".encode("utf-8"))
                         else:
-                            print("Key not found")
+                            s.sendall("Key not found".encode("utf-8"))
 
     
                     else:

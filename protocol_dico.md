@@ -82,8 +82,28 @@ Voici les interactions possibles définies dans le protocole.
 
 ### Commandes Administrateur (SET / DEL)
 *Ces commandes sont réservées aux administrateurs.*
-* **SET** : `<dico> set <clé> <valeur>`
-* **DEL** : `<dico> del <clé>`
+
+### Commande SET
+* **But** : Ajouter une nouvelle entrée ou modifier une entrée existante dans le dictionnaire.
+* **Format envoyé** : `<dico> set <clé>|<valeur>`
+    * *Note : La clé et la valeur doivent être séparées par un caractère pipe (`|`) sans espaces autour.*
+* **Réponse succès** : `Set <clé> = <valeur>`
+* **Réponse erreur** : `Error in set arguments` (si le format `clé|valeur` n'est pas respecté).
+
+**Exemple d'échange :**
+> **Envoi** : `mois_duree.json set thermidor|30`
+> **Réception** : `Set thermidor = 30`
+
+### Commande DEL
+* **But** : Supprimer une entrée du dictionnaire.
+* **Format envoyé** : `<dico> del <clé>`
+* **Réponse succès** : `Deleted <clé>`
+* **Réponse erreur** : `Key not found`
+
+**Exemple d'échange :**
+> **Envoi** : `mois_duree.json del juillet`
+> **Réception** : `Deleted juillet`
+
 
 ## USAGE
 
