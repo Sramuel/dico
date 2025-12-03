@@ -7,10 +7,13 @@ import sys
 from dico_local import *
 from dico_protocol import parse_request
 
+admin_user={"admin":"admin"} #tableau des user admin (avec username:password)
+
 ss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 l=[] #liste sockets clients
 try: #crée le serveur et ouvre les connexion
     master = False
+    admin=False
     port = int(sys.argv[1])
     if len(sys.argv)>4:
         if (sys.argv[2]== "master"):
@@ -39,11 +42,21 @@ while True: #on reçoit les données envoyé par le client
                 cmdarg = parse_request(data)
                 if cmdarg != None: #sécurité si message vide ou malformé
                     dicoarg = cmdarg[0] #réception du nom du fichier dico envoyé par le client
-                    command = cmdarg[1] #réception de la commande envoyé par le client
-                    dico = load_dico(f"data/{dicoarg}")
+                    if dicoarg == "dico_admin.py":
+                        login = cmdarg[1]
+                        password = cmdarg[2]
+                        if login in admin_user and password in admin_user[login]:
+                            admin = True
+                            s.sendall("Nice ! You are logged in !!!".encode("utf-8"))
+                        else :
+                            s.sendall("Wrong login or password".encode("utf-8"))
+
+                    else:
+                        command = cmdarg[1] #réception de la commande envoyé par le client
+                        dico = load_dico(f"data/{dicoarg}")
 
                     
-                    if command == 'get':
+                    if command == 'get' and not admin:
                         key = cmdarg[2] #réception de la clé du dictionnaire envoyé dans les arguments par le client
                         if key in dico:
                             s.sendall(f"{dico[key]}".encode("utf-8"))
@@ -57,7 +70,7 @@ while True: #on reçoit les données envoyé par le client
                             s.sendall("Key not found".encode("utf-8"))
 
                     
-                    elif command == 'pref':
+                    elif command == 'pref' and not admin:
                         char="" #chaîne de caractère qui contiendra le dico des préfixes (dico_pref) pour l'envoyer au client
                         dico_pref = {} #création du dico des préfixes valides
                         cpt=0 #nombre de lettres dans le préfixe envoyé par le client
@@ -85,7 +98,31 @@ while True: #on reçoit les données envoyé par le client
                         else:
                             s.sendall("Prefix not found".encode("utf-8"))
 
+
+                    elif command == 'set' and admin:
+                        if len(sys.argv) != 5:
+                            print("Usage: dico_local.py <dico_file> set <key> <value>")
+                            sys.exit(1)
+                        key = sys.argv[3]
+                        value = sys.argv[4]
+                        dico[key] = value
+                        save_dico(f"data/{dicoarg}", dico)
+                        print(f"Set {key} = {value}")
                         
+
+                    elif command == 'del' and admin:
+                        if len(sys.argv) != 4:
+                            print("Usage: dico_local.py <dico_file> del <key>")
+                            sys.exit(1)
+                        key = sys.argv[3]
+                        if key in dico:
+                            del dico[key]
+                            save_dico(f"data/{dicoarg}", dico)
+                            print(f"Deleted {key}")
+                        else:
+                            print("Key not found")
+
+    
                     else:
                         s.sendall(f"Unknown command: {command}".encode("utf-8"))
                 else:

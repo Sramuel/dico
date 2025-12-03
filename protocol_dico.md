@@ -85,6 +85,12 @@ Voici les interactions possibles définies dans le protocole.
 * **SET** : `<dico> set <clé> <valeur>`
 * **DEL** : `<dico> del <clé>`
 
+## USAGE
+
+
+
+
+
 
 ## 4. Fonctionnement Serveur Maître / Esclave
 
