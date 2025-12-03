@@ -44,7 +44,7 @@ Exemples de requêtes en fonction des différentes commandes disponibles
 
 - Particularité pour l’admin, le client administrateur devra s'authentifier auprès du serveur :
 
-`./dico_admin.py <@serveur> <port du serveur>`
+`./dico_admin.py <@serveur> <port du serveur> <username> <password>`
 
 - De plus, il pourra rester connecté pour effectuer plusieurs opérations du type :
 
