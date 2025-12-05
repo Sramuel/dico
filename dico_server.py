@@ -50,7 +50,7 @@ while True: #on reçoit les données envoyé par le client
                     if dicoarg == "dico_admin.py": #si dicoarg est dico_admin.py, c'est une tentative de login admin
                         login = cmdarg[1]
                         password = cmdarg[2]
-                        if login in admin_user and password in admin_user[login]: #vérification des identifiants
+                        if login in admin_user and password == admin_user[login]: #vérification des identifiants
                             admins.append(s) #on ajoute la socket à la liste des admins connectés
                             s.sendall("Nice ! You are logged in !!!".encode("utf-8"))
                         else :
