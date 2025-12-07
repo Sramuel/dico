@@ -21,6 +21,7 @@ try: #crée le serveur et ouvre les connexion
             hostmaster=sys.argv[3]
             portmaster=sys.argv[4]
             master=True
+            print(f"Lancement en mode esclave, maître: {hostmaster}:{portmaster}") #print pour debug entre maître et esclave
     ss.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) #évite le Adress already in use
     ss.bind(("",port))
     ss.listen(1)
@@ -50,7 +51,7 @@ while True: #on reçoit les données envoyé par le client
                     if dicoarg == "dico_admin.py": #si dicoarg est dico_admin.py, c'est une tentative de login admin
                         login = cmdarg[1]
                         password = cmdarg[2]
-                        if login in admin_user and password in admin_user[login]: #vérification des identifiants
+                        if login in admin_user and password == admin_user[login]: #vérification des identifiants
                             admins.append(s) #on ajoute la socket à la liste des admins connectés
                             s.sendall("Nice ! You are logged in !!!".encode("utf-8"))
                         else :
@@ -65,10 +66,12 @@ while True: #on reçoit les données envoyé par le client
                     if command == 'get' and not admin:
                         key = cmdarg[2] #réception de la clé du dictionnaire envoyé dans les arguments par le client
                         if key in dico:
+                            print(f"Clé trouvée localement: {key}") #print pour debug entre maître et esclave
                             s.sendall(f"{dico[key]}".encode("utf-8"))
                         elif master: #pas trouvé localement, mais on a un maitre
                             sm = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                             sm.connect((hostmaster, int(portmaster)))
+                            print("J'ai pas trouvé donc je demande au maitre") #print pour debug entre maître et esclave
                             sm.sendall(data) #on transfère la requête brute
                             s.sendall(sm.recv(1500)) #on renvoie la réponse du maître au client
                             sm.close()
@@ -94,10 +97,12 @@ while True: #on reçoit les données envoyé par le client
                         for key in dico_pref: #on parcourt tous les préfixes valides du dico_pref pour les mettre dans une seule chaîne de caractères pour l'envoyer au client
                             char+=(f"\"{key}\": \"{dico_pref[key]}\" ")
                         if char != "": #si le dico des préfixes n'est pas vide alors on envoie la liste des clés:valeurs associées au préfixe
+                            print(f"Préfixe trouvé localement: {pref_key}") #print pour debug entre maître et esclave
                             s.sendall(char.encode("utf-8"))
                         elif master: #pas trouvé localement, on demande au maître
                             sm = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                             sm.connect((hostmaster, int(portmaster)))
+                            print("J'ai pas trouvé donc je demande au maitre") #print pour debug entre maître et esclave
                             sm.sendall(data)
                             s.sendall(sm.recv(1500))
                             sm.close()

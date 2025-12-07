@@ -107,9 +107,67 @@ Voici les interactions possibles définies dans le protocole.
 
 ## USAGE
 
+* **Préparation** : Faire `/sbin/ifconfig` et remplacer les `@host` par les IP (Ctrl+H dans VS Code).
 
+### 1\. Test Maître / Esclave
 
+**Sur le HOST 1 (Maître)**
 
+```bash
+cd ~/dico-A5-05/tests/serveur_maitre/
+./dico_server.py 7777
+```
+
+**Sur le HOST 2 (Esclave)**
+
+```bash
+cd ~/dico-A5-05/tests/serveur_esclave/
+./dico_server.py 8888 master @host1 7777
+```
+
+**Sur le HOST 3 (Client)**
+
+```bash
+cd ~/dico-A5-05/
+./dico_client.py @host2 8888 punchlines.json get Bruce Lee
+./dico_client.py @host2 8888 punchlines.json pref A
+./dico_client.py @host2 8888 mois_duree.json get juin
+./dico_client.py @host2 8888 mois_duree.json pref j
+```
+
+-----
+
+### 2\. Test Dico Admin
+
+**Sur le HOST 1 (Serveur)**
+
+```bash
+cd ~/dico-A5-05/
+./dico_server.py 7777
+```
+
+**Sur le HOST 2 (Admin - Connexion)**
+
+```bash
+./dico_admin.py @host1 7777 samuel 123
+./dico_admin.py @host1 7777 admin a
+./dico_admin.py @host1 7777 admin admin
+```
+
+**Une fois connecté (commandes internes)**
+
+```text
+mois_duree.json set juin|20
+mois_duree.json del juin
+punchlines.json del Bruce Lee
+punchlines.json set John F. Kennedy|La victoire a cent pères, mais la défaite est orpheline.
+exit
+```
+
+```bash
+./dico_client.py @host1 7777 punchlines.json get John F. Kennedy
+./dico_client.py @host1 7777 punchlines.json pref J
+```
 
 
 ## 4. Fonctionnement Serveur Maître / Esclave
