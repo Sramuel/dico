@@ -1,11 +1,8 @@
 #!/usr/bin/python3
 
-import socket
 import select
 import sys
-
-from dico_local import *
-from dico_protocol import parse_request
+from dico_protocol import *
 
 admin_user={"admin":"admin"} #tableau des user admin (avec username:password)
 
@@ -64,74 +61,24 @@ while True: #on reçoit les données envoyé par le client
 
                     
                     if command == 'get' and not admin:
-                        key = cmdarg[2] #réception de la clé du dictionnaire envoyé dans les arguments par le client
-                        if key in dico:
-                            print(f"Clé trouvée localement: {key}") #print pour debug entre maître et esclave
-                            s.sendall(f"{dico[key]}".encode("utf-8"))
-                        elif master: #pas trouvé localement, mais on a un maitre
-                            sm = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                            sm.connect((hostmaster, int(portmaster)))
-                            print("J'ai pas trouvé donc je demande au maitre") #print pour debug entre maître et esclave
-                            sm.sendall(data) #on transfère la requête brute
-                            s.sendall(sm.recv(1500)) #on renvoie la réponse du maître au client
-                            sm.close()
-                        else:
-                            s.sendall("Key not found".encode("utf-8"))
-
+                        if master:
+                            command_with_master(cmdarg[2], dico, hostmaster, portmaster, data, s)
+                        else :
+                            command_get(cmdarg[2], dico, s)
                     
                     elif command == 'pref' and not admin:
-                        char="" #chaîne de caractère qui contiendra le dico des préfixes (dico_pref) pour l'envoyer au client
-                        dico_pref = {} #création du dico des préfixes valides
-                        cpt=0 #nombre de lettres dans le préfixe envoyé par le client
-                        pref_key = cmdarg[2] #on reçoit le prefixe de la clé envoyé par le clint
-                        len_p = len(pref_key)
-                        for key in dico: #on parcourt tout le dictionnaire
-                            i = 0
-                            while i<len(key) and i<len_p : #on vérifie si le préfixe est valide en taille par rapport à la clé
-                                if pref_key[i] == key[i]: #si la lettre correspond, on regarde la suivante
-                                    cpt+=1
-                                i+=1 
-                            if cpt == len_p: #si toutes les lettres correspondent à un préfixe valide, alors on le met dans le dico des préfixes
-                                dico_pref[key]=dico[key]
-                            cpt=0
-                        for key in dico_pref: #on parcourt tous les préfixes valides du dico_pref pour les mettre dans une seule chaîne de caractères pour l'envoyer au client
-                            char+=(f"\"{key}\": \"{dico_pref[key]}\" ")
-                        if char != "": #si le dico des préfixes n'est pas vide alors on envoie la liste des clés:valeurs associées au préfixe
-                            print(f"Préfixe trouvé localement: {pref_key}") #print pour debug entre maître et esclave
-                            s.sendall(char.encode("utf-8"))
-                        elif master: #pas trouvé localement, on demande au maître
-                            sm = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                            sm.connect((hostmaster, int(portmaster)))
-                            print("J'ai pas trouvé donc je demande au maitre") #print pour debug entre maître et esclave
-                            sm.sendall(data)
-                            s.sendall(sm.recv(1500))
-                            sm.close()
+                        if master:
+                            command_with_master(cmdarg[2], dico, hostmaster, portmaster, data, s)
                         else:
-                            s.sendall("Prefix not found".encode("utf-8"))
-
+                            command_pref(cmdarg[2], dico, s)
 
                     elif command == 'set' and admin:
-                        try:
-                            args_set = cmdarg[2].split("|", 1) # On sépare la clé de la valeur
-                            key = args_set[0]
-                            value = args_set[1]
-                            dico[key] = value
-                            save_dico(f"data/{dicoarg}", dico) #on sauvegarde le dico modifié
-                            s.sendall(f"Set {key} = {value}".encode("utf-8"))
-                        except:
-                            s.sendall("Error in set arguments".encode("utf-8"))
-                        
+                        command_set(cmdarg[2], dico, dicoarg, s)
 
                     elif command == 'del' and admin:
-                        key = cmdarg[2]
-                        if key in dico:
-                            del dico[key] #on supprime la clé du dico
-                            save_dico(f"data/{dicoarg}", dico)
-                            s.sendall(f"Deleted {key}".encode("utf-8"))
-                        else:
-                            s.sendall("Key not found".encode("utf-8"))
+                        command_del(cmdarg[2], dico, dicoarg, s)
 
-    
+
                     else:
                         s.sendall(f"Unknown command: {command}".encode("utf-8"))
                 else:
