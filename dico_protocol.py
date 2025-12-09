@@ -17,23 +17,38 @@ def parse_request(data): #découpe le message reçu (serveur <- client)
     except:
         return None
 
-def command_get(key, dico, s):
-    if key in dico:
-        print(f"Clé trouvée localement: {key}") #print pour debug entre maître et esclave
-        s.sendall(f"{dico[key]}".encode("utf-8"))
+def command_get(key, dico, s, master, hostmaster, portmaster, data):
+    if key in dico: 
+        print(f"Clé trouvée localement: {key}") 
+        s.sendall(dico[key].encode("utf-8")) #on renvoie la valeur associée à la clé envoyée par le client
+    elif master and hostmaster and portmaster: #on verifie que le master, son adresse et son port d'écoute son bien définis
+        # on contacte le maître
+        sm = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print("Clé non trouvée, je demande au maître")
+        sm.connect((hostmaster, int(portmaster)))
+        sm.sendall(data)
+        s.sendall(sm.recv(1500))
+        sm.close()
     else:
         s.sendall("Key not found".encode("utf-8"))
 
-def command_pref(prefix, dico, s):
-    char="" #chaîne de caractère qui contiendra le dico des préfixes (dico_pref) pour l'envoyer au client
+def command_pref(prefix, dico, s, master, hostmaster, portmaster, data):
+    char = ""
     found = False
     for k, v in dico.items():
         if k.startswith(prefix):
-            char+=(f"\"{k}\": \"{v}\" ")
+            char += f"\"{k}\": \"{v}\" "
             found = True
-    if found: #si on a trouvé au moins un préfixe alors on envoie la liste des clés:valeurs associées au préfixe
-        print(f"Préfixe trouvé localement: {prefix}") #print pour debug entre maître et esclave
-        s.sendall(char.encode("utf-8"))
+    if found:
+        print(f"Préfixe trouvé localement: {prefix}")
+        s.sendall(char.encode("utf-8")) #on renvoie la ou les valeurs associées à la clé envoyée par le client
+    elif master and hostmaster and portmaster: #on verifie que le master, son adresse et son port d'écoute son bien définis
+        sm = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print("Préfixe non trouvé, je demande au maître")
+        sm.connect((hostmaster, int(portmaster)))
+        sm.sendall(data)
+        s.sendall(sm.recv(1500))
+        sm.close()
     else:
         s.sendall("Prefix not found".encode("utf-8"))
 
@@ -55,11 +70,3 @@ def command_del(key, dico, dicoarg, s):
         s.sendall(f"Deleted {key}".encode("utf-8"))
     else:
         s.sendall("Key not found".encode("utf-8"))
-
-def command_with_master(key, dico, hostmaster, portmaster, data, s):
-    sm = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sm.connect((hostmaster, int(portmaster)))
-    print("J'ai pas trouvé donc je demande au maitre") #print pour debug entre maître et esclave
-    sm.sendall(data) #on transfère la requête brute
-    s.sendall(sm.recv(1500)) #on renvoie la réponse du maître au client
-    sm.close()

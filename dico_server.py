@@ -12,6 +12,8 @@ admins=[] #liste des sockets clients admins connectés
 
 try: #crée le serveur et ouvre les connexion
     master = False
+    hostmaster = None
+    portmaster = None
     port = int(sys.argv[1])
     if len(sys.argv)>4:
         if (sys.argv[2]== "master"):
@@ -61,22 +63,16 @@ while True: #on reçoit les données envoyé par le client
 
                     
                     if command == 'get' and not admin:
-                        if master:
-                            command_with_master(cmdarg[2], dico, hostmaster, portmaster, data, s)
-                        else :
-                            command_get(cmdarg[2], dico, s)
-                    
+                        command_get(cmdarg[2], dico, s, master, hostmaster, portmaster, data) #appel de la commande get
+
                     elif command == 'pref' and not admin:
-                        if master:
-                            command_with_master(cmdarg[2], dico, hostmaster, portmaster, data, s)
-                        else:
-                            command_pref(cmdarg[2], dico, s)
+                        command_pref(cmdarg[2], dico, s, master, hostmaster, portmaster, data) #appel de la commande pref
 
                     elif command == 'set' and admin:
-                        command_set(cmdarg[2], dico, dicoarg, s)
+                        command_set(cmdarg[2], dico, dicoarg, s) #appel de la commande set
 
                     elif command == 'del' and admin:
-                        command_del(cmdarg[2], dico, dicoarg, s)
+                        command_del(cmdarg[2], dico, dicoarg, s) #appel de la commande del
 
 
                     else:
