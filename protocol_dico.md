@@ -149,7 +149,7 @@ cd ~/dico-A5-05/
 **Sur le HOST 2 (Admin - Connexion)**
 
 ```bash
-./dico_admin.py @host1 7777 samuel 123
+./dico_admin.py @host1 7777 demo-user demo-password
 ./dico_admin.py @host1 7777 admin a
 ./dico_admin.py @host1 7777 admin admin
 ```
